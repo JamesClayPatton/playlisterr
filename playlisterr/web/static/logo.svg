@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 64" role="img"
+     aria-label="Playlisterr">
+  <title>Playlisterr</title>
+  <defs>
+    <linearGradient id="nx-amber" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffc25c"/>
+      <stop offset="1" stop-color="#f5a623"/>
+    </linearGradient>
+  </defs>
+
+  <!-- The mark: a play triangle with a chevron running ahead of it —
+       "what you watch" and "what comes next", which is the whole product. -->
+  <g>
+    <rect x="4" y="8" width="48" height="48" rx="12" fill="#1e2128"/>
+    <rect x="4" y="8" width="48" height="48" rx="12" fill="none"
+          stroke="url(#nx-amber)" stroke-width="2"/>
+    <!-- Centred on the tile's optical middle: the chevron's round cap paints
+         half a stroke-width past its path, so the ink spans 14..42.25 and its
+         midpoint lands on 28.1 (the tile centre). -->
+    <path d="M14 21 L14 43 L28 32 Z" fill="url(#nx-amber)"/>
+    <path d="M32 23 L40 32 L32 41" fill="none" stroke="url(#nx-amber)"
+          stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Wordmark. "err" carries the accent, the way Seerr/Overseerr read. -->
+  <text x="64" y="43"
+        font-family="-apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+        font-size="28" font-weight="700" letter-spacing="-0.5">
+    <tspan fill="#e6e8ec">Playlist</tspan><tspan fill="url(#nx-amber)">err</tspan>
+  </text>
+</svg>

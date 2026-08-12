@@ -1,0 +1,6 @@
+{
+ "method": "GET",
+ "url": "http://demo.local:32400/library/sections/1/collections",
+ "recorded_at": 1700000000,
+ "body": "{\"MediaContainer\": {\"size\": 0, \"Metadata\": []}}"
+}

@@ -1,0 +1,6 @@
+{
+ "method": "GET",
+ "url": "http://demo.local:32400/library/sections",
+ "recorded_at": 1700000000,
+ "body": "{\"MediaContainer\": {\"Directory\": [{\"key\": \"1\", \"type\": \"movie\", \"title\": \"Movies\"}, {\"key\": \"2\", \"type\": \"show\", \"title\": \"TV Shows\"}]}}"
+}

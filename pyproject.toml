@@ -1,0 +1,28 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "playlisterr"
+version = "0.1.0"
+description = "Personalized Plex recommendation rows chosen by a local LLM from titles you already own"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "AGPL-3.0-or-later" }
+keywords = ["plex", "recommendations", "llm", "ollama", "selfhosted", "arr"]
+# Intentionally empty: the core runs on the standard library alone.
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/JamesClayPatton/playlisterr"
+Source = "https://github.com/JamesClayPatton/playlisterr"
+Issues = "https://github.com/JamesClayPatton/playlisterr/issues"
+
+[project.scripts]
+playlisterr = "playlisterr.cli:main"
+
+[tool.setuptools]
+packages = ["playlisterr", "playlisterr.pipeline", "playlisterr.providers", "playlisterr.web"]
+
+[tool.setuptools.package-data]
+"playlisterr.web" = ["static/*"]

@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Playlisterr</title>
+<link rel="icon" type="image/svg+xml" href="/static/favicon.svg">
+<link rel="alternate icon" type="image/png" sizes="32x32" href="/static/favicon-32.png">
+<link rel="shortcut icon" href="/static/favicon.ico">
+<link rel="apple-touch-icon" href="/static/apple-touch-icon.png">
+<meta name="theme-color" content="#f5a623">
+<meta name="description" content="Personalised Plex rows chosen by a local LLM from titles you already own.">
+<style>
+:root {
+  --bg: #16181d; --panel: #1e2128; --panel-2: #252932; --line: #31363f;
+  --text: #e6e8ec; --muted: #9aa3b2; --accent: #f5a623; --accent-dim: #7a5310;
+  --ok: #4caf50; --bad: #e5484d; --radius: 6px;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.5 -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+a { color: var(--accent); }
+header {
+  display: flex; align-items: center; gap: 12px; padding: 0 18px;
+  height: 52px; background: var(--panel); border-bottom: 1px solid var(--line);
+  position: sticky; top: 0; z-index: 10;
+}
+header .brand { display: flex; align-items: center; text-decoration: none; }
+header .brand img { display: block; }
+header .ver { color: var(--muted); font-size: 12px; }
+header .spacer { flex: 1; }
+.pill {
+  font-size: 12px; padding: 3px 10px; border-radius: 999px;
+  border: 1px solid var(--line); color: var(--muted);
+}
+.pill.ok { color: var(--ok); border-color: #2c5c31; }
+.pill.bad { color: var(--bad); border-color: #6d2529; }
+.layout { display: flex; min-height: calc(100vh - 52px); }
+nav {
+  width: 180px; flex: none; background: var(--panel);
+  border-right: 1px solid var(--line); padding: 12px 0;
+}
+nav button {
+  display: block; width: 100%; text-align: left; background: none;
+  border: 0; border-left: 3px solid transparent; color: var(--muted);
+  padding: 10px 18px; font-size: 14px; cursor: pointer;
+}
+nav button:hover { color: var(--text); background: var(--panel-2); }
+nav button.active {
+  color: var(--text); border-left-color: var(--accent);
+  background: var(--panel-2);
+}
+main { flex: 1; padding: 22px 26px; max-width: 1000px; }
+h1 { font-size: 20px; margin: 0 0 4px; font-weight: 600; }
+h2 { font-size: 15px; margin: 26px 0 10px; font-weight: 600; }
+.sub { color: var(--muted); margin: 0 0 18px; }
+.card {
+  background: var(--panel); border: 1px solid var(--line);
+  border-radius: var(--radius); padding: 16px; margin-bottom: 14px;
+}
+.grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+.stat .n { font-size: 24px; font-weight: 600; }
+.stat .l { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .6px; }
+.row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+label.field { display: block; margin-bottom: 14px; }
+label.field .name { display: block; font-weight: 600; margin-bottom: 3px; }
+label.field .hint { display: block; color: var(--muted); font-size: 12px; margin-bottom: 6px; }
+input[type=text], input[type=password], input[type=number], select, textarea {
+  width: 100%; max-width: 460px; background: var(--panel-2);
+  border: 1px solid var(--line); color: var(--text); border-radius: 4px;
+  padding: 8px 10px; font: inherit;
+}
+input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); }
+button.btn {
+  background: var(--accent); color: #241a04; border: 0; border-radius: 4px;
+  padding: 8px 14px; font: inherit; font-weight: 600; cursor: pointer;
+}
+button.btn:hover { filter: brightness(1.08); }
+button.btn:disabled { opacity: .5; cursor: not-allowed; }
+button.ghost {
+  background: none; border: 1px solid var(--line); color: var(--text);
+}
+button.ghost:hover { background: var(--panel-2); }
+button.ghost.danger { color: var(--muted); }
+button.ghost.danger:hover {
+  color: var(--bad); border-color: #6d2529; background: none;
+}
+table { width: 100%; border-collapse: collapse; }
+th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); }
+th { color: var(--muted); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .5px; }
+td.num, th.num { text-align: right; }
+.tag { font-size: 11px; padding: 2px 8px; border-radius: 999px; background: var(--panel-2); color: var(--muted); }
+.tag.personalized { color: var(--accent); }
+pre.log {
+  background: #101216; border: 1px solid var(--line); border-radius: 4px;
+  padding: 12px; max-height: 460px; overflow: auto; font-size: 12px;
+  color: #c8cdd6; white-space: pre-wrap;
+}
+.pick { padding: 6px 0; border-bottom: 1px solid var(--line); }
+.pick:last-child { border-bottom: 0; }
+.pick .t { font-weight: 600; }
+.pick .r { color: var(--muted); }
+.pick .via { font-size: 11px; color: var(--accent-dim); }
+.result { margin-bottom: 12px; }
+.result summary { cursor: pointer; padding: 8px 0; font-weight: 600; }
+.msg { padding: 8px 12px; border-radius: 4px; margin: 8px 0; font-size: 13px; }
+.msg.ok { background: #17301a; color: #9bd3a0; }
+.msg.bad { background: #3a1a1c; color: #f0a5a8; }
+.msg.info { background: var(--panel-2); color: var(--muted); }
+.wizard { max-width: 560px; margin: 40px auto; }
+.hidden { display: none !important; }
+.detail { color: var(--muted); font-size: 12px; max-height: 130px; overflow: auto; margin-top: 6px; }
+.runlog {
+  margin: 10px 0 0; max-height: 220px; overflow-y: auto;
+  background: #0d0f13; border: 1px solid var(--line); border-radius: 4px;
+  padding: 8px 10px; font: 12px/1.55 ui-monospace, Menlo, Consolas, monospace;
+  color: #b9c0cc; white-space: pre-wrap; word-break: break-word;
+}
+.inline { display: flex; gap: 8px; align-items: flex-start; max-width: 460px; }
+.inline select, .inline input { flex: 1; }
+/* Radio-cards: an option you can read the consequences of before picking. */
+.opts { display: grid; gap: 8px; max-width: 620px; margin-top: 4px; }
+.opt {
+  border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 10px 12px; cursor: pointer; background: var(--panel-2);
+}
+.opt:hover { border-color: var(--muted); }
+.opt.sel { border-color: var(--accent); background: #2a2417; }
+.opt-t { font-weight: 600; margin-bottom: 2px; }
+.opt-d { color: var(--muted); font-size: 12.5px; line-height: 1.45; }
+.chks { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px,1fr));
+        gap: 4px; max-width: 620px; margin-top: 4px; }
+.chk { display: flex; gap: 7px; align-items: center; color: var(--text);
+       background: var(--panel-2); border: 1px solid var(--line);
+       border-radius: 4px; padding: 6px 9px; font-size: 13px; }
+.field { display: block; margin-bottom: 16px; }
+.field .name { display: block; font-weight: 600; margin-bottom: 3px; }
+.field .hint { display: block; color: var(--muted); font-size: 12px;
+               margin-bottom: 6px; line-height: 1.45; }
+input[type=time] { width: auto; }
+tr.off td { opacity: .45; }
+tr.off td:first-child { opacity: 1; }
+.act { flex: 1 1 220px; min-width: 200px; }
+.act-d { color: var(--muted); font-size: 12px; margin-top: 6px;
+         line-height: 1.45; }
+.adv {
+  font-size: 10px; text-transform: uppercase; letter-spacing: .6px;
+  color: var(--accent-dim); border: 1px solid var(--line);
+  border-radius: 3px; padding: 1px 5px; margin-left: 8px;
+  font-weight: 600; vertical-align: 1px;
+}
+/* Wide content (the user/run tables) scrolls inside its own box rather than
+   pushing the page sideways. */
+.tablewrap { overflow-x: auto; }
+.tablewrap table { min-width: 460px; }
+/* Settings sub-navigation — one group at a time instead of one long scroll. */
+.subnav {
+  display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px;
+}
+.subtab {
+  background: var(--panel); border: 1px solid var(--line); color: var(--muted);
+  border-radius: 999px; padding: 7px 14px; font: inherit; font-size: 13px;
+  cursor: pointer;
+}
+.subtab:hover { color: var(--text); border-color: var(--muted); }
+.subtab.active {
+  color: var(--text); border-color: var(--accent); background: #2a2417;
+}
+.veto {
+  float: right; margin-left: 8px; width: 22px; height: 22px; padding: 0;
+  border: 1px solid var(--line); border-radius: 4px; background: var(--panel-2);
+  color: var(--muted); cursor: pointer; font-size: 12px; line-height: 20px;
+}
+.veto:hover:not(:disabled) { color: var(--bad); border-color: #6d2529; }
+.veto:disabled { color: var(--ok); cursor: default; }
+
+/* Phone layout: the fixed sidebar becomes a horizontal top bar and everything
+   stacks. Without this the 180px nav plus a table is unusable under ~600px. */
+@media (max-width: 680px) {
+  .layout { flex-direction: column; }
+  nav {
+    width: auto; display: flex; overflow-x: auto;
+    border-right: 0; border-bottom: 1px solid var(--line); padding: 0;
+  }
+  nav button {
+    border-left: 0; border-bottom: 3px solid transparent;
+    white-space: nowrap; padding: 12px 16px;
+  }
+  nav button.active {
+    border-left: 0; border-bottom-color: var(--accent);
+  }
+  main { padding: 16px 14px; }
+  input[type=text], input[type=password], input[type=number],
+  select, textarea, .opts, .chks { max-width: 100%; }
+  /* Keep the header from overflowing on a phone: drop the version and the
+     schedule pill (both live on the System page), keep health + status. */
+  header { padding: 0 12px; gap: 8px; }
+  header .ver, header #schedPill { display: none; }
+  header .pill { font-size: 11px; padding: 3px 8px; }
+  /* Stop horizontal overflow: minmax(0,1fr) lets grid columns actually
+     shrink, actions stack full-width, and nothing pokes past the viewport. */
+  .layout, main { overflow-x: hidden; min-width: 0; }
+  main { width: 100%; box-sizing: border-box; }
+  .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .act { min-width: 0; flex-basis: 100%; }
+}
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="/" aria-label="Playlisterr home">
+    <img src="/static/logo.svg" alt="Playlisterr" height="30">
+  </a>
+  <div class="ver" id="version"></div>
+  <div class="spacer"></div>
+  <div class="pill" id="healthPill" title="Service health"></div>
+  <div class="pill" id="schedPill">schedule —</div>
+  <div class="pill" id="statusPill">connecting…</div>
+</header>
+
+<div class="layout">
+  <nav>
+    <button data-page="home" class="active">Home</button>
+    <button data-page="users">Users</button>
+    <button data-page="settings">Settings</button>
+    <button data-page="system">System</button>
+  </nav>
+  <main>
+    <section id="page-setup" class="hidden">
+      <div class="wizard">
+        <img src="/static/logo.svg" alt="Playlisterr" height="44"
+             style="margin-bottom:14px">
+        <h1>Personalised rows, from what you already own</h1>
+        <p class="sub">Two things and you're running. Everything else has a
+          working default.</p>
+        <div class="card" id="w_step1">
+          <h2 style="margin-top:0">1 · Connect your Plex account</h2>
+          <p class="sub" id="w_plex_state">Playlisterr never sees your password —
+            Plex asks you to approve it, then hands back a token.</p>
+          <button class="btn" onclick="plexSignIn()" id="w_signin">
+            Sign in with Plex</button>
+          <div id="w_plex_msg"></div>
+          <div id="w_servers" class="hidden">
+            <label class="field" style="margin-top:14px">
+              <span class="name">Which server?</span>
+              <span class="hint">Only addresses that answered are offered.</span>
+              <select id="w_server"></select></label>
+          </div>
+          <details style="margin-top:10px">
+            <summary class="sub" style="cursor:pointer">
+              Enter a URL and token manually instead</summary>
+            <label class="field" style="margin-top:10px">
+              <span class="name">Plex URL</span>
+              <input type="text" id="w_plex_url" placeholder="http://…:32400"></label>
+            <label class="field"><span class="name">Plex token</span>
+              <input type="password" id="w_plex_token"></label>
+            <button class="btn ghost" onclick="wizardTest('plex')">Test</button>
+          </details>
+        </div>
+        <div class="card">
+          <h2 style="margin-top:0">2 · Pick a language model</h2>
+          <p class="sub">Playlisterr can look for one already running on your
+            network.</p>
+          <button class="btn" onclick="probeLLM()" id="w_probe">
+            Find my model</button>
+          <div id="w_llm_msg"></div>
+          <div id="w_llm_manual" class="hidden" style="margin-top:14px">
+            <label class="field"><span class="name">Provider</span>
+              <select id="w_llm_provider">
+                <option value="ollama">Ollama (local)</option>
+                <option value="openai">OpenAI-compatible API</option>
+              </select></label>
+            <label class="field"><span class="name">URL</span>
+              <input type="text" id="w_llm_url" placeholder="http://…:11434"></label>
+            <label class="field" id="w_llm_key_wrap"><span class="name">API key</span>
+              <span class="hint">Only for hosted endpoints — OpenAI,
+                OpenRouter, Together. Leave blank for a local model.</span>
+              <input type="password" id="w_llm_api_key"></label>
+            <label class="field"><span class="name">Model</span>
+              <div class="inline">
+                <select id="w_llm_model"><option value="">— detect models —</option></select>
+                <button class="btn ghost" onclick="wizardDetect()">Detect</button>
+              </div></label>
+          </div>
+          <p class="sub" style="margin-top:10px"><a href="#"
+            onclick="showManualLLM();return false">No GPU? Use a hosted API
+            instead →</a></p>
+        </div>
+        <button class="btn" onclick="wizardSave()">Save and continue</button>
+        <div id="w_msg"></div>
+      </div>
+    </section>
+
+    <section id="page-home">
+      <h1>Home</h1>
+      <div id="healthBanner"></div>
+      <p class="sub" id="homeSub">—</p>
+      <div class="grid" id="homeStats"></div>
+      <div class="card">
+        <div class="row" style="align-items:flex-start">
+          <div class="act">
+            <button class="btn ghost" id="btnDry" onclick="startRun(true)">
+              Generate</button>
+            <div class="act-d">Works everything out — reads Plex, builds each
+              person’s taste, asks the model — and writes
+              <b>nothing</b>. Shows you exactly what it would publish.</div>
+          </div>
+          <div class="act">
+            <button class="btn" id="btnSaved" onclick="publishPreview()">
+              Publish these picks</button>
+            <div class="act-d" id="previewNote">Publishes the picks you are
+              looking at, unchanged. No model call, so you get exactly what
+              you approved.</div>
+          </div>
+          <div class="act">
+            <button class="btn ghost" id="btnPub" onclick="startRun(false)">
+              Generate &amp; publish</button>
+            <div class="act-d">Generates a fresh set and writes it straight
+              away. The model is not deterministic, so these will differ from
+              whatever was generated above.</div>
+          </div>
+          <span id="runState" class="pill">idle</span>
+        </div>
+        <div id="runMsg"></div>
+        <pre id="runLog" class="runlog hidden" aria-live="polite"></pre>
+      </div>
+      <div id="results"></div>
+    </section>
+
+    <section id="page-users" class="hidden">
+      <h1>Users</h1>
+      <p class="sub" id="usersSub">Who Playlisterr builds rows for.</p>
+      <div class="card">
+        <div class="field">
+          <span class="name">Build rows for</span>
+          <div class="opts" id="usersMode" data-value="all">
+            <div class="opt" data-v="all" onclick="pickUsersMode('all')">
+              <div class="opt-t">Everyone on this server</div>
+              <div class="opt-d">New people are picked up automatically as
+                they are added.</div></div>
+            <div class="opt" data-v="selected" onclick="pickUsersMode('selected')">
+              <div class="opt-t">Only the people I choose</div>
+              <div class="opt-d">Switching someone off also removes the rows
+                Playlisterr already put in their account.</div></div>
+          </div>
+        </div>
+        <div id="userPicker" class="hidden">
+          <div class="row" style="margin-bottom:10px">
+            <input type="text" id="userSearch" placeholder="Search people…"
+                   oninput="renderUserRows()" style="max-width:260px">
+            <button class="btn ghost" onclick="setAllUsers(true)">Select all</button>
+            <button class="btn ghost" onclick="setAllUsers(false)">Select none</button>
+            <button class="btn ghost" onclick="setAllUsers('personal')">
+              Only those with enough history</button>
+            <span class="tag" id="userCount"></span>
+          </div>
+        </div>
+        <div class="tablewrap"><table id="usersTable">
+          <thead><tr><th style="width:34px" id="thPick"></th><th>Person</th>
+            <th class="num">Plays</th><th class="num">Titles</th>
+            <th>Row they get</th></tr></thead>
+          <tbody><tr><td colspan="5">loading…</td></tr></tbody>
+        </table></div>
+        <div class="row" style="margin-top:14px">
+          <button class="btn" onclick="saveUsers()">Save</button>
+          <span id="usersMsg"></span>
+        </div>
+      </div>
+    </section>
+
+    <section id="page-settings" class="hidden">
+      <h1>Settings</h1>
+      <p class="sub">Stored in settings.json in your config folder. Every field
+        can also be set with a <code>PLAYLISTERR_*</code> environment variable.</p>
+      <div id="settingsForm"></div>
+      <div class="row" style="margin-top:16px">
+        <button class="btn" onclick="saveSettings()">Save</button>
+        <span id="saveMsg"></span>
+      </div>
+    </section>
+
+    <section id="page-system" class="hidden">
+      <h1>System</h1>
+      <h2>Status</h2>
+      <div class="card" id="sysStatus">—</div>
+      <div class="row" style="margin:10px 0">
+        <button class="btn ghost" onclick="downloadBackup()">
+          Back up config</button>
+        <button class="btn ghost" onclick="downloadLog()">Download log</button>
+        <span class="sub">Backup zips settings + state (config and run history).</span>
+      </div>
+      <h2>Recent runs</h2>
+      <div class="card"><div class="tablewrap"><table id="runsTable">
+        <thead><tr><th>When</th><th>Mode</th><th class="num">Users</th>
+          <th class="num">Personalized</th><th class="num">Written</th>
+          <th class="num">Seconds</th></tr></thead>
+        <tbody><tr><td colspan="6">no runs yet</td></tr></tbody>
+      </table></div></div>
+      <h2>Log</h2>
+      <div class="row" style="margin-bottom:8px">
+        <button class="btn ghost" onclick="loadLogs()">Refresh</button>
+      </div>
+      <pre class="log" id="logBox">—</pre>
+    </section>
+  </main>
+</div>
+
+<script src="/static/app.js"></script>
+</body>
+</html>

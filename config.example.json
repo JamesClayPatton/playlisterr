@@ -1,0 +1,77 @@
+{
+  "plex": {
+    "url": "http://192.168.1.10:32400",
+    "token": "YOUR_PLEX_TOKEN",
+    "movie_libraries": [],
+    "show_libraries": [],
+    "exclude_libraries": [],
+    "timeout": 60
+  },
+  "llm": {
+    "provider": "ollama",
+    "url": "http://192.168.1.20:11434",
+    "model": "qwen2.5:14b-instruct",
+    "api_key": "",
+    "temperature": 0.4,
+    "keep_alive": "10m",
+    "timeout": 600,
+    "candidates": 200,
+    "system_prompt": ""
+  },
+  "recommendations": {
+    "picks": 15,
+    "history_days": 180,
+    "min_plays": 10,
+    "min_titles": 3,
+    "collection_title": "For {name}",
+    "per_library": true,
+    "playlist_title": "Generated {library}",
+    "taste_scope": "library",
+    "library_min_plays": 5,
+    "max_libraries": 4,
+    "fallback_title": "House Picks",
+    "label_prefix": "playlisterr",
+    "min_rating": 0.0,
+    "exclude_genres": [],
+    "exclude_titles": [],
+    "include_movies": true,
+    "include_shows": true,
+    "promote_to_library": true,
+    "promote_to_home": true,
+    "promote_to_owner_home": true,
+    "library_row_position": "top",
+    "delivery": "playlist"
+  },
+  "users": {
+    "mode": "all",
+    "selected": [],
+    "selected_names": []
+  },
+  "notifications": {
+    "webhook_url": "",
+    "format": "json",
+    "on_success": true,
+    "on_failure": true
+  },
+  "history": {
+    "provider": "auto"
+  },
+  "tautulli": {
+    "url": "",
+    "api_key": "",
+    "timeout": 60
+  },
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8484,
+    "api_key": "",
+    "schedule_mode": "daily",
+    "schedule_time": "03:30",
+    "auth_required": false
+  },
+  "general": {
+    "client_id": "",
+    "log_level": "info",
+    "timezone": ""
+  }
+}

@@ -1,0 +1,6 @@
+{
+ "method": "GET",
+ "url": "http://demo.local:32400/identity",
+ "recorded_at": 1700000000,
+ "body": "<?xml version=\"1.0\"?><MediaContainer machineIdentifier=\"demomachineidentifier000000000000000000\" friendlyName=\"Demo Plex\"></MediaContainer>"
+}

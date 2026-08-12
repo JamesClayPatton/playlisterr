@@ -1,0 +1,6 @@
+{
+ "method": "GET",
+ "url": "http://demo.local:32400/api/tags",
+ "recorded_at": 1700000000,
+ "body": "{\"models\": [{\"name\": \"demo-model:latest\"}]}"
+}

@@ -1,0 +1,19 @@
+# Shell scripts must stay LF even when checked out on Windows — a CRLF
+# docker-entrypoint.sh fails at container start with "no such file or
+# directory" on the interpreter line.
+*.sh text eol=lf
+docker-entrypoint.sh text eol=lf
+
+# Keep line endings sane everywhere else.
+*.py text
+*.js text
+*.html text
+*.css text
+*.md text
+*.json text
+*.yml text
+*.yaml text
+
+# Binary assets — never touch.
+*.png binary
+*.ico binary

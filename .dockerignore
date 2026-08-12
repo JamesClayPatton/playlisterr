@@ -1,0 +1,14 @@
+# Keep the build context small and clean. The image only needs the package
+# plus README/LICENSE (see the COPY lines in the Dockerfile); everything here
+# is either irrelevant to the runtime or should never enter an image.
+.git
+.gitignore
+.gitattributes
+.github
+docs
+fixtures
+config
+*.pyc
+__pycache__/
+.DS_Store
+Thumbs.db

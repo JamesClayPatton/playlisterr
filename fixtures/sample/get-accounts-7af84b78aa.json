@@ -1,0 +1,6 @@
+{
+ "method": "GET",
+ "url": "http://demo.local:32400/accounts",
+ "recorded_at": 1700000000,
+ "body": "{\"MediaContainer\": {\"Account\": [{\"id\": \"1\", \"name\": \"demo-owner\"}, {\"id\": \"0\", \"name\": \"\"}]}}"
+}

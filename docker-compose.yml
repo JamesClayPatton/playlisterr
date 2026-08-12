@@ -1,0 +1,26 @@
+# Playlisterr — clone the repo, then `docker compose up -d` from inside it.
+# The image is built from the Dockerfile in this checkout; nothing is pulled
+# from a registry.
+#
+# Nothing else is required: open http://<host>:8484 and the setup wizard
+# signs you into Plex, finds your server, and finds your model. Every setting
+# below can also be set in the UI.
+services:
+  playlisterr:
+    build: .
+    container_name: playlisterr
+    restart: unless-stopped
+    ports:
+      - "8484:8484"
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
+      # Optional: skip the wizard entirely by configuring from the compose
+      # file. Anything set here overrides settings.json.
+      # - PLAYLISTERR_PLEX_URL=http://192.168.1.10:32400
+      # - PLAYLISTERR_PLEX_TOKEN=xxxxxxxxxxxx
+      # - PLAYLISTERR_LLM_URL=http://192.168.1.20:11434
+      # - PLAYLISTERR_LLM_MODEL=qwen2.5:14b-instruct
+    volumes:
+      - ./config:/config

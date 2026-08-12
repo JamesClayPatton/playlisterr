@@ -1,0 +1,6 @@
+{
+ "method": "GET",
+ "url": "https://plex.tv/api/servers/demomachineidentifier000000000000000000/shared_servers",
+ "recorded_at": 1700000000,
+ "body": "<?xml version=\"1.0\"?><MediaContainer><SharedServer id=\"1\" userID=\"1001\" username=\"jordan\" email=\"jordan@example.com\" accessToken=\"DEMO-USER-1\" allLibraries=\"1\"/><SharedServer id=\"2\" userID=\"1002\" username=\"sam\" email=\"sam@example.com\" accessToken=\"DEMO-USER-2\" allLibraries=\"1\"/></MediaContainer>"
+}

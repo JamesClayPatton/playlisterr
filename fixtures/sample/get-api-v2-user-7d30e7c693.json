@@ -1,0 +1,6 @@
+{
+ "method": "GET",
+ "url": "https://plex.tv/api/v2/user",
+ "recorded_at": 1700000000,
+ "body": "{\"id\": 1}"
+}

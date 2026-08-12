@@ -1,0 +1,73 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  compile:
+    # The core is standard-library only, so "does it parse and import on every
+    # supported Python" is most of what CI needs to guard.
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python: ["3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Byte-compile every module
+        run: python -m compileall -q playlisterr
+      - name: No third-party imports crept into the core
+        run: |
+          python - <<'PY'
+          import ast, pathlib, sys
+          stdlib = set(sys.stdlib_module_names)
+          allowed = stdlib | {"playlisterr"}
+          bad = []
+          for path in pathlib.Path("playlisterr").rglob("*.py"):
+              tree = ast.parse(path.read_text(encoding="utf-8"))
+              for node in ast.walk(tree):
+                  if isinstance(node, ast.Import):
+                      names = [a.name.split(".")[0] for a in node.names]
+                  elif isinstance(node, ast.ImportFrom) and node.level == 0:
+                      names = [(node.module or "").split(".")[0]]
+                  else:
+                      continue
+                  for n in names:
+                      if n and n not in allowed:
+                          bad.append(f"{path}: imports third-party {n!r}")
+          if bad:
+              print("\n".join(bad)); sys.exit(1)
+          print("core is standard-library only")
+          PY
+      - name: config.example.json is in sync with DEFAULTS
+        run: |
+          python -m playlisterr config --write-example /tmp/example.json
+          python - <<'PY'
+          import json
+          a = json.load(open("config.example.json"))
+          b = json.load(open("/tmp/example.json"))
+          if sorted(a) != sorted(b) or any(sorted(a[s]) != sorted(b[s]) for s in a):
+              raise SystemExit(
+                  "config.example.json is stale — run "
+                  "`python -m playlisterr config --write-example config.example.json`")
+          print("config example is in sync")
+          PY
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the image
+        run: docker build -t playlisterr:ci .
+      - name: It starts and answers /ping
+        run: |
+          docker run -d --name playlisterr-ci -p 8484:8484 playlisterr:ci
+          for i in $(seq 1 20); do
+            curl -sf http://localhost:8484/ping && break || sleep 1
+          done
+          curl -sf http://localhost:8484/ping
+          docker rm -f playlisterr-ci

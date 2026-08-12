@@ -1,0 +1,6 @@
+{
+ "method": "GET",
+ "url": "http://demo.local:32400/",
+ "recorded_at": 1700000000,
+ "body": "{\"MediaContainer\": {\"friendlyName\": \"Demo Plex\", \"version\": \"1.40.0\", \"platform\": \"Linux\"}}"
+}

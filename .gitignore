@@ -1,0 +1,28 @@
+# Runtime config volume — this is the /config bind mount when running locally.
+# It holds settings.json (with your Plex token), state.json and logs.
+/config/
+
+# Recorded fixtures may contain real usernames, emails and access tokens.
+# Never commit them. Only the intentionally anonymized sample set is tracked,
+# under fixtures/sample/. (Do NOT ignore /fixtures/ as a whole — git cannot
+# re-include a subdir whose parent is ignored, which would drop the sample.)
+/fixtures/*
+!/fixtures/sample/
+
+# The maintainer's private planning doc — kept out of the published repo.
+# See docs/DESIGN.md for the sanitized design notes.
+/PROJECT-SCOPE.md
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+*.egg-info/
+dist/
+build/
+.pytest_cache/
+.coverage
+htmlcov/
+.DS_Store
+Thumbs.db
